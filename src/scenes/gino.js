@@ -8,12 +8,15 @@ const R_FUOCO = 12;
 
 const TASTO_FUOCO= PP.key_codes.F;
 const TASTO_SALTO= PP.key_codes.SPACE;
+const TASTO_SX= pp.key_codes.LEFT;
+const TASTO_DESTRA= pp.key_codes.RIGHT;
 
 const VEL_INIZIALE= 400;
 const ACCELERAZIONE= 20;
 const VEL_FUOCO = 600;
 const VEL_SALTO= 1000;
 const DISTANZA_MAX = 600;
+const VEL_CORSA= 400;
 
 const A_TERRENO = 96;
 const Y_TERRENO = 624;
@@ -48,8 +51,16 @@ function preload(s) {
     img_terreno= PP.assets.image.load(s,"assets/images/terreno.png");
 }
 
+function create(s) {
+    PP.assets.image.add(s, img_sfondo, 0, 0, 0, 0,);
+    crea_terreno(s);
+    crea_gino(s);
+    crea_fungo(s);
+    crea_fine(s);
+}
+
 function crea_terreno(s) {
-    terreno= PP.assets.image.add(s, img_terreno,
+    terreno= PP.shapes.rectangle_add(s, img_terreno,
         LARGHEZZA / 2, 
         Y_TERRENO + A_TERRENO / 2, 
         0.5,
@@ -59,7 +70,7 @@ function crea_terreno(s) {
 }
 
 function crea_gino(s) {
-        gino = PP.assets.image.add(s,img_gino,
+        gino = PP.shapes.rectangle_add (s,img_gino,
         X_GINO,
         Y_TERRENO - A_GINO / 2, 
         0.5,
@@ -71,21 +82,16 @@ function crea_gino(s) {
 }
 
 function crea_fungo(s) {
-        fungo = PP.assets.image.add(s,img_fungo,
+        fungo = PP.shapes.rectangle_add (s,img_fungo,
         LARGHEZZA * 3 / 4, Y_TERRENO - A_FUNGO / 2, 0.5, 0.5);
     PP.physics.add(s, fungo, PP.physics.type.DYNAMIC);
     PP.physics.set_allow_gravity(fungo, false);
-    PP.physics.set_velocity_x(fungo,- vel_fungo);
+    PP.physics.set_velocity_x(fungo,- VEL_FUNGO);
     PP.physics.add_overlap_f(s,gino,fungo,fine_partita);
 }
 
 
-function fine_partita(s, a, b) {
-    partita_finita= true;
-    PP.physics.set_velocity_x(b,0);
-    testo_fine.visibility.hidden = false;
-    testo_rigioca.visibility.hidden = false;
-}
+
 
 function crea_fine(s) {
     testo_fine= PP.shapes.text_styled_add(s,
@@ -127,12 +133,21 @@ function ricomincia(s) {
 }
 
 
-function create(s) {
-    PP.assets.image.add(s, img_sfondo, 0, 0, 0, 0,);
-    crea_terreno(s);
-    crea_gino(s);
-    crea_fungo(s);
-    crea_fine(s);
+function update(s) {
+    if (parte_finita) {
+        if (PP.interactive.kb.is_key_just_down(s, TASTO_SALTO))
+            ricomincia(s)
+        return;
+    }
+    salta(s);
+    cammina(s);
+}
+
+function fine_partita(s, a, b) {
+    partita_finita= true;
+    PP.physics.set_velocity_x(b,0);
+    testo_fine.visibility.hidden = false;
+    testo_rigioca.visibility.hidden = false;
 }
  
 function salta(s) {
@@ -140,6 +155,16 @@ function salta(s) {
         PP.physics.is_on_ground(gino))
     {
         PP.physics.set_velocity_y(gino, -VEL_SALTO);
+    }
+}
+
+function cammina(s) {
+    if (PP.interactive.kb.is_key_down(s, TASTO_SX)) {
+        PP.physics.set_velocity_x(gino, -VEL_CORSA);
+    } else if (PP.interactive.kb.is_key_down(s, TASTO_DESTRA)) {
+        PP.physics.set_velocity_x(gino, VEL_CORSA);
+    } else {
+        PP.physics.set_velocity_x(gino, 0);
     }
 }
 
@@ -155,48 +180,7 @@ function resetta_fungo(){
     PP.physics.set_velocity_x(fungo, -vel_fungo);
 }
 
-function spara(s) {
-    if (PP.interactive.kb.is_key_just_down(s, TASTO_FUOCO) &&
-        fuoco==null) {
-        fuoco = PP.assets.image.add(s,img_fuoco,
-            gino.geometry.body_x + L_GINO/2,
-            gino.geometry.body_y - 15 +L_GINO/4,
-            0.5,
-            0.5
-        );
-        PP.physics.add(s,fuoco, PP.physics.type.DYNAMIC);
-        PP.physics.set_velocity_x(fuoco, VEL_FUOCO);
-        PP.physics.add_collider(s,fuoco,terreno);
-        PP.physics.set_bounce_y(fuoco, 1);
-        PP.physics.add_overlap_f(s,fuoco,fungo, brucia);
-    }
-}
 
-function brucia(s,a,b) {
-    PP.assets.destroy(fuoco);
-    fuoco= null;
-    resetta_fungo(s);
-}
-
-
-function controlla_fuoco() {
-    if (fuoco!==null && fuoco.geometry.body_x> LARGHEZZA) {
-        PP.assets.destroy(fuoco);
-        fuoco= null;
-    }
-}
-
-function update(s) {
-    if (parte_finita) {
-        if (PP.interactive.kb.is_key_just_down(s, TASTO_SALTO))
-            ricomincia(s)
-        return;
-    }
-    salta(s);
-    controlla_fungo();  
-    controlla_fuoco();
-    spara(s);
-}
 
 function destroy(s) {}
 
