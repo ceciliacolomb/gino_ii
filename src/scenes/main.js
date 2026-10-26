@@ -7,7 +7,7 @@ const config = {
   canvas_id: "area_gioco",
   background_color: 0x7EC8F0,
   gravity_value: 2000,
-  debug_mode: true,
+  debug_mode: false,
 };
 
 PP.game.create(config);

@@ -41,7 +41,7 @@ let terreno;
 let gino;
 let funghi;
 let piattaforma;
-let parte_finita;
+let partita_finita;
 
 let img_terreno
 let img_piattaforma
@@ -67,7 +67,7 @@ function preload(s) {
     img_bandiera = PP.assets.image.load (s,"assets/images/bandiera.png")
     ss_gino = PP.assets.sprite.load_spritesheet (s,
         "assets/images/gino_spritesheet.png", L_GINO, A_GINO);
-     ss_gino = PP.assets.sprite.load_spritesheet (s,
+    ss_fungo = PP.assets.sprite.load_spritesheet (s,
         "assets/images/fungo_spritesheet.png", L_FUNGO, A_FUNGO);
     img_nuvole = PP.assets.image.load(s,
         "assets/images/nuvole.png");
@@ -82,11 +82,11 @@ function create(s) {
     funghi=[];
     animazione = "";
 
+    crea_sfondo (s);
     crea_terreno(s);
     crea_gino(s);
     crea_funghi(s);
     crea_piattaforma(s);
-    crea_sfondo (s);
     crea_bandiera (s);
     crea_camera(s);
     
@@ -107,7 +107,7 @@ function crea_layer (s, img) {
 }
 
 function crea_bandiera (s) {
-    let bandiera= PPP.assets.image.add(s, img_bandiera,
+    let bandiera= PP.assets.image.add(s, img_bandiera,
     X_BANDIERA, Y_TERRENO - A_BANDIERA / 2, 0.5, 0.5);
     PP.physics.add(s, bandiera, PP.physics.type.STATIC);
     PP.physics.add_overlap_f(s,gino,bandiera,vittoria
@@ -130,7 +130,7 @@ function crea_camera(s) {
 
 function crea_terreno(s) {
     terreno= PP.assets.tilesprite.add (s, img_terreno,
-        0, Y_TERRENO, L_TERRENO, A_TERRENO, 0, 0
+        0, Y_TERRENO, L_LIVELLO, A_TERRENO, 0, 0
     );
     PP.physics.add(s, terreno, PP.physics.type.STATIC);
 }
@@ -156,7 +156,7 @@ function crea_funghi(s) {
         Y_TERRENO - A_FUNGO / 2, 0.5, 0.5);
     PP.physics.add(s, f, PP.physics.type.DYNAMIC);
     PP.physics.set_allow_gravity(f, false);
-    PP.physics.set_velocity_x(fungo,- VEL_FUNGO);
+    PP.physics.set_velocity_x(f,- VEL_FUNGO);
     PP.physics.add_overlap_f(s,gino,f,fine_partita);
     PP.assets.sprite.animation_add (f, "cammina", 0, 15, 20, -1);
     PP.assets.sprite.animation_play (f, "cammina");
@@ -166,7 +166,6 @@ function crea_funghi(s) {
 
 function update(s) {
     if (partita_finita) {
-        if (PP.interactive.kb.is_key_just_down(s, TASTO_SALTO))
         return;
     }
     cammina(s);
@@ -183,6 +182,9 @@ function fine_partita(s, a, b) {
 }
 
 function termina (messaggio) {
+    if (partita_finita) {
+        return;
+    }
     partita_finita = true;
     PP.game_state.set_variable ("messaggio", messaggio)
     PP.scenes.start ("fine")
@@ -209,13 +211,12 @@ function cammina(s) {
 }
 
 function vittoria (s,a,b){
-    partita_finita = true;
-    PP.scenes.start ("LIVELLO COMPLETATO")
+   termina("LIVELLO COMPLETATO")
 }
 
 function anima_gino () {
     let nuova = "fermo";
-    if (PP.physics.is_on_ground (gino)){
+    if (!PP.physics.is_on_ground (gino)){
         nuova = "salto";
 
     } else if (PP.physics.get_velocity_x (gino) !==0) {
@@ -223,6 +224,7 @@ function anima_gino () {
     }
 
     if (nuova !== animazione) {
+        animazione = nuova 
         PP.assets.sprite.animation_play(gino, animazione);
     }
 

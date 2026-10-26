@@ -9,21 +9,22 @@ function create (s) {
 }
 
 function mostra_messaggio (s) {
-    PP.shapes.test_styled_add (s,
+    let messaggio = PP.game_state.get_variable("messaggio");
+    PP.shapes.text_styled_add (s,
         LARGHEZZA/2, ALTEZZA / 3,
         "GAME OVER",
         64, "Arial", "bold", NERO, null, 0.5, 0.5);
 }
 
 function mostra_rigioca (s) {
-    PP.shapes.test_styled_add (s,
+    PP.shapes.text_styled_add (s,
         LARGHEZZA/2, ALTEZZA / 2,
         "RIGIOCA (SPAZIO)",
-        64, "Arial", "bold", NERO, null, 0.5, 0.5);
+        40, "Arial", "bold", NERO, null, 0.5, 0.5);
 }
 
 function update (s) {
-    if (PP.interactive.is_key_just_down (s, TASTO_GIOCA)) {
+    if (PP.interactive.kb.is_key_just_down (s, TASTO_GIOCA)) {
         PP.scenes.start("gino")
     }
 }      
